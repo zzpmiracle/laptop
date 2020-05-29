@@ -1,31 +1,61 @@
+# %%
+
+# This Python 3 environment comes with many helpful analytics libraries installed
+# It is defined by the kaggle/python Docker image: https://github.com/kaggle/docker-python
+# For example, here's several helpful packages to load
+
+import numpy as np  # linear algebra
+import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
+
+# Input data files are available in the read-only "../input/" directory
+# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory
+
+import os
+
+for dirname, _, filenames in os.walk('/kaggle/input'):
+    for filename in filenames:
+        print(os.path.join(dirname, filename))
+
+# You can write up to 5GB to the current directory (/kaggle/working/) that gets preserved as output when you create a version using "Save & Run All" 
+# You can also write temporary files to /kaggle/temp/, but they won't be saved outside of the current session
+
+# %%
+
 import random
 import os
 
 import tensorflow.keras as keras
 import numpy as np
 from tensorflow.keras.callbacks import LambdaCallback
-from tensorflow.keras.models import Model, load_model,Sequential
-from tensorflow.keras.layers import LSTM, Dropout, Dense,Embedding
+from tensorflow.keras.models import Model, load_model, Sequential
+from tensorflow.keras.layers import LSTM, Dropout, Dense, Embedding
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras import Input
 
-test = np.load('tang.npz')
-data, ix2word, word2ix = test['data'], test['ix2word'].item(), test['word2ix'].item()
+import json
+
+with open('dic.json', 'r') as f:
+    for line in f:
+        dic = json.loads(line)
+    ix2word, word2ix = dic['ix2word'], dic['word2ix']
 
 
 class PoetryModel():
     def __init__(self):
         self.model = None
         self.do_train = True
-        self.load_model = False
+        self.load_model = True
         self.poems = self.process_data()
         self.poems_num = len(self.poems)
-        self.model_name = 'tang.hdf5'
+        self.model_name = 'D:\python\dataset\\tang\\tang.hdf5'
         self.Embedding_dim = 128
         self.batch_size = 32
-        self.epoch = 100
+        self.epoch = 512
         self.max_len = 6
         if os.path.exists(self.model_name) and self.load_model:
+
             self.model = load_model(self.model_name)
+            print('loaded')
         else:
             self.train()
 
@@ -47,38 +77,25 @@ class PoetryModel():
 
         # 输入的dimension
         self.model = Sequential()
-        self.model.add(Embedding(input_dim=len(word2ix), output_dim=self.Embedding_dim))
-        self.model.add(LSTM(512, input_shape=[self.max_len,self.Embedding_dim],return_sequences=True))
+        self.model.add(Input(shape=(self.max_len, len(word2ix))))
+        self.model.add(LSTM(512, return_sequences=True))
         self.model.add(Dropout(0.6))
         self.model.add(LSTM(256))
         self.model.add(Dropout(0.6))
-        self.model.add(Dense(len(ix2word),activation='softmax'))
-        # input_tensor = Input(shape=(self.max_len, len(word2ix)))
-        # lstm = (input_tensor)
-        # dropout = Dropout(0.6)(lstm)
-        # lstm = LSTM(256)(dropout)
-        # dropout = Dropout(0.6)(lstm)
-        # dense = Dense(len(word2ix), activation='softmax')(dropout)
-        # self.model = Model(inputs=input_tensor, outputs=dense)
+        self.model.add(Dense(len(ix2word), activation='softmax'))
+
         optimizer = Adam(lr=0.001)
         self.model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
     def generate_sample_result(self, epoch, logs):
-        '''训练过程中，每4个epoch打印出当前的学习情况'''
-        if epoch % 4 != 0:
-            return
-
-        with open('out/out.txt', 'a', encoding='utf-8') as f:
+        with open('out.txt', 'a', encoding='utf-8') as f:
             f.write('==================Epoch {}=====================\n'.format(epoch))
 
         print("\n==================Epoch {}=====================".format(epoch))
         for diversity in [0.7, 1.0, 1.3]:
-            print("------------Diversity {}--------------".format(diversity))
             generate = self.predict_random(temperature=diversity)
-            print(generate)
-
             # 训练时的预测结果写入txt
-            with open('out/out.txt', 'a', encoding='utf-8') as f:
+            with open('out.txt', 'a', encoding='utf-8') as f:
                 f.write(generate + '\n')
 
     def predict_random(self, temperature=1.0):
@@ -118,12 +135,12 @@ class PoetryModel():
             return
 
         sentence = text[-max_len:]
-        print('the first line:', sentence)
+        #         print('the first line:', sentence)
         generate = str(sentence)
         generate += self._preds(sentence, length=24 - max_len, temperature=temperature)
         return generate
 
-    def predict_hide(self, text, temperature=1):
+    def predict_hide(self, text, single_len=5 ,temperature=1):
         '''根据给4个字，生成藏头诗五言绝句'''
         if not self.model:
             print('model not loaded')
@@ -138,7 +155,7 @@ class PoetryModel():
         generate = str(text[0])
         print('first line = ', sentence)
 
-        for i in range(5):
+        for i in range(single_len):
             next_char = self._pred(sentence, temperature)
             sentence = sentence[1:] + next_char
             generate += next_char
@@ -146,7 +163,7 @@ class PoetryModel():
         for i in range(3):
             generate += text[i + 1]
             sentence = sentence[1:] + text[i + 1]
-            for i in range(5):
+            for i in range(single_len):
                 next_char = self._pred(sentence, temperature)
                 sentence = sentence[1:] + next_char
                 generate += next_char
@@ -188,27 +205,29 @@ class PoetryModel():
             return
 
         sentence = sentence[-self.max_len:]
-        x_pred = []
-        for char in sentence:
-            x_pred.append(word2ix[char])
+        x_pred = np.zeros(shape=(1, self.max_len, len(word2ix)))
+        for index, char in enumerate(sentence):
+            try:
+                x_pred[0, index, word2ix[char]] = 1.0
+            except:
+                continue
         # x_pred = np.zeros((1, self.max_len, ))
         # for t, char in enumerate(sentence):
         #     x_pred[0, t, word2ix(char)] = 1.
         preds = self.model.predict(x_pred, verbose=0)[0]
         next_index = self.sample(preds, temperature=temperature)
-        next_char = ix2word[next_index]
+        next_char = ix2word[str(next_index)]
 
         return next_char
 
     def data_generator(self):
         '''生成器生成数据'''
         np.random.shuffle(self.poems)
-        index = 0
         while 1:
+            poem = np.random.choice(self.poems)
             # 选取随机一首诗的最后max_len字符+给出的首个文字作为初始输入
-            poem = self.poems[index]
             try:
-                for poem_index in range(len(poem)-self.max_len):
+                for poem_index in range(len(poem) - self.max_len):
                     x = poem[poem_index: poem_index + self.max_len]
                     y = poem[poem_index + self.max_len]
                     # y_vec = np.zeros(
@@ -217,40 +236,43 @@ class PoetryModel():
                     # )
                     # y_vec[0, word2ix[y]] = 1.0
                     y_vec = np.zeros(
-                        shape=(1,len(word2ix)),
+                        shape=(1, len(word2ix)),
                         # dtype=np.bool
                     )
-                    y_vec[0,word2ix[y]] = 1.0
-                    x_vec = []
-                    for char in x:
-                        x_vec.append(word2ix[char])
+                    y_vec[0, word2ix[y]] = 1.0
+                    x_vec = np.zeros(shape=(1, self.max_len, len(word2ix)))
+                    for index, char in enumerate(x):
+                        x_vec[0, index, word2ix[char]] = 1.0
                     # print(x_vec,y_vec)
-                    yield np.array(x_vec), y_vec
-                index +=1
+                    yield x_vec, y_vec
             except:
                 continue
 
     def train(self):
         '''训练模型'''
         print('training')
-        number_of_epoch = self.poems_num//50
-        print('epoches = ', number_of_epoch)
-        print('poems_num = ', self.poems_num)
-        # print('len(self.files_content) = ', len(self.files_content))
+        number_of_epoch = self.poems_num
 
         if not self.model:
             self.build_model()
 
-        self.model.fit(
+        self.history = self.model.fit(
             x=self.data_generator(),
             # verbose=True,
-            steps_per_epoch=number_of_epoch,
+            steps_per_epoch=number_of_epoch // 10,
             epochs=self.epoch,
-            batch_size = self.batch_size,
             callbacks=[
                 keras.callbacks.ModelCheckpoint(self.model_name, save_weights_only=False),
                 LambdaCallback(on_epoch_end=self.generate_sample_result)
             ]
         )
+
+
 model = PoetryModel()
-model.train()
+print(model.predict_hide('爱我中华',single_len = 11))
+# model.train()
+# print(model.history.history)
+#
+# with open('history.txt', 'a') as outfile:
+#     json.dump(model.history.history, outfile)
+

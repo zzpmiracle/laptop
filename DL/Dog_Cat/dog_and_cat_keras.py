@@ -26,21 +26,21 @@ test_data_generator = ImageDataGenerator(rescale=1. / 255).flow_from_directory(d
 model_path = 'dog_cat_model.hdf5'
 
 
-# def create_model():
-#     model = Sequential()
-#     model.add(Convolution2D(25, (5, 5), input_shape=image_dim))
-#     model.add(MaxPooling2D(2, 2))
-#     model.add(Activation('relu'))
-#     model.add(Convolution2D(50, (5, 5)))
-#     model.add(MaxPooling2D(2, 2))
-#     model.add(Activation('relu'))
-#     model.add(Flatten())
-#
-#     model.add(Dense(50))
-#     model.add(Activation('relu'))
-#     model.add(Dense(1))
-#     model.add(Activation('sigmoid'))
-#     return model
+def create_model():
+    model = Sequential()
+    model.add(Convolution2D(25, (5, 5), input_shape=image_dim))
+    model.add(MaxPooling2D(2, 2))
+    model.add(Activation('relu'))
+    model.add(Convolution2D(50, (5, 5)))
+    model.add(MaxPooling2D(2, 2))
+    model.add(Activation('relu'))
+    model.add(Flatten())
+
+    model.add(Dense(50))
+    model.add(Activation('relu'))
+    model.add(Dense(1))
+    model.add(Activation('sigmoid'))
+    return model
 #
 #
 # if os.path.exists(model_path):

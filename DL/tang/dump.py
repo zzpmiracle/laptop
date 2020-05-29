@@ -14,5 +14,3 @@ res = 1.0
 for i in range(51,101):
     res-= 1/i
 print(res)
-
-import tensorflow

@@ -5,7 +5,6 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.models import load_model
-from tensorflow import keras
 import os
 
 from matplotlib import pyplot as plt
@@ -50,12 +49,16 @@ else:
     model = create_model()
 
 adam = Adam(lr=0.001)
+model.summary()
+
 # compile model
 model.compile(optimizer=adam,loss='categorical_crossentropy',metrics=['accuracy'])
+
+from tensorflow.keras.utils import plot_model
+plot_model(model,to_file='mnist.png',show_layer_names=False,show_shapes=True,rankdir='LR')
 # training model
 history = model.fit(x_train, y_train, batch_size=64, epochs=10,verbose=2,validation_split=0.2,shuffle=True)
 # test model
 # model.save(model_path)
-#98.6
 print(model.evaluate(x_test, y_test, batch_size=64))
 print(history.history)

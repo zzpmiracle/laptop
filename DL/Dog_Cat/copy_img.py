@@ -9,9 +9,9 @@ def random_cutFile(srcPath,dstPath,numfiles):
         shutil.move(oldname,oldname.replace(srcPath, dstPath))
 
 
-root_path = 'D:\python\dataset\Dog_Cat'
+root_path = 'D:\python\dataset\Dog_Cat\\test'
 
 test_nums = 250
-srcPath=os.path.join(root_path,'train')
-dstPath =os.path.join(root_path,'test')
-random_cutFile(srcPath,dstPath,2500)
+srcPath=os.path.join(root_path,'dog')
+dstPath =os.path.join('D:\python\dataset\Dog_Cat\\val\dog')
+random_cutFile(srcPath,dstPath,400)

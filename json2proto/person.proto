@@ -1,11 +1,31 @@
-syntax = "proto3";
-package example;
-
-message person {
-    int32 id = 1;
-    string name = 2;
-}
-
-message all_person {
-    repeated person Per = 1;
-}
+message EchoRequest {
+ required string text = 1;
+ }
+   message ComplexMessage {
+ required string _str = 1;
+ optional float _float = 2;
+ required sint64 _int_default = 13[default=99];
+ repeated sint64 _int = 3;
+ required bytes _bin = 4;
+ required bool _bool = 5;
+ message SubMessage {
+ required string field = 1;
+ repeated EchoRequest echo = 2;
+ }
+ optional SubMessage sub = 10;
+ enum SubEnum {
+ VALUE1 = 10;
+ VALUE2 = 20;
+ };
+ extend ComplexMessage {
+ optional sint32 e_int = 103;
+ repeated sint32 e_int_list = 104;
+ }
+ repeated SubEnum _enum = 11;
+ repeated string str_list = 12;
+ extensions 100 to 199;
+ }
+   extend ComplexMessage {
+ optional bool e_bool = 101;
+ repeated bool e_bool_list = 102;
+ }
