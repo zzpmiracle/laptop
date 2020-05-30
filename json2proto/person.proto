@@ -1,3 +1,4 @@
+syntax = "proto2";
 message EchoRequest {
  required string text = 1;
  }
@@ -11,8 +12,9 @@ message EchoRequest {
  message SubMessage {
  required string field = 1;
  repeated EchoRequest echo = 2;
+  extensions 100 to 199;
  }
- optional SubMessage sub = 10;
+ repeated SubMessage sub = 10;
  enum SubEnum {
  VALUE1 = 10;
  VALUE2 = 20;

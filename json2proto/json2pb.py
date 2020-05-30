@@ -40,26 +40,23 @@ def dict2pb(cls, json_dic, strict=False):
         msg_type = field.message_type
         if field.label == FD.LABEL_REPEATED:
             if field.type == FD.TYPE_MESSAGE:
-                for sub_dict in cur_value:
-                    item = getattr(target, field.name).add()
-                    item.CopyFrom(dict2pb(msg_type._concrete_class, sub_dict))
+                getattr(target, field.name).extend([dict2pb(msg_type._concrete_class,sub_dict) for sub_dict in cur_value])
+            elif field.type == FD.TYPE_ENUM:
+                getattr(target, field.name).extend([field.enum_type.values_by_name[sub_val].number if isinstance(sub_val,str) else sub_val for sub_val in cur_value])
             else:
-                for sub_val in cur_value:
-                    if field.type == FD.TYPE_BYTES:
-                        getattr(target, field.name).append(str.encode(sub_val))
-                    else:
-                        getattr(target, field.name).append(sub_val)
-                # map(getattr(target, field.name).append, cur_value)
+                getattr(target,field.name).extend([str.encode(sub_val) if field.type == FD.TYPE_BYTES else sub_val for sub_val in cur_value])
+
         else:
             if field.type == FD.TYPE_MESSAGE:
                 value = dict2pb(msg_type._concrete_class, cur_value)
                 getattr(target, field.name).CopyFrom(value)
             elif field.type == FD.TYPE_BYTES:
                 setattr(target, field.name, str.encode(cur_value))
+            elif field.type == FD.TYPE_ENUM:
+                setattr(target, field.name, field.enum_type.values_by_name[cur_value].number if isinstance(cur_value, str) else cur_value)
             else:
                 setattr(target, field.name, cur_value)
     for extension_name in target._extensions_by_name:
-        print(extension_name)
         extension = target._extensions_by_name[extension_name]
         if extension.name not in json_dic:
             if not extension.has_default_value:
@@ -68,21 +65,22 @@ def dict2pb(cls, json_dic, strict=False):
         msg_type = extension.message_type
         if extension.label == FD.LABEL_REPEATED:
             if extension.type == FD.TYPE_MESSAGE:
-                for sub_dict in cur_value:
-                    item = target.Extensions[extension].add()
-                    item.CopyFrom(dict2pb(msg_type._concrete_class, sub_dict))
+                target.Extensions[extension].extend([dict2pb(msg_type._concrete_class, sub_dict) for sub_dict in cur_value])
+            elif extension.type == FD.TYPE_ENUM:
+                target.Extensions[extension].extend([extension.enum_type.values_by_name[sub_val].number
+                                                    if isinstance(sub_val, str) else sub_val for sub_val in cur_value])
             else:
-                for sub_val in cur_value:
-                    target.Extensions[extension].append(sub_val)
-                # map(getattr(target, field.name).append, cur_value)
+                target.Extensions[extension].extend([str.encode(sub_val) if extension.type == FD.TYPE_BYTES else sub_val for sub_val in cur_value])
         else:
             if extension.type == FD.TYPE_MESSAGE:
                 value = dict2pb(msg_type._concrete_class, cur_value)
                 target.Extensions[extension].CopyFrom(value)
             elif extension.type == FD.TYPE_BYTES:
-                target.Extensions[extension] = str.encode(cur_value)
+                target.Extensions[extension] =  str.encode(cur_value)
+            elif extension.type == FD.TYPE_ENUM:
+                target.Extensions[extension]= extension.enum_type.values_by_name[cur_value].number if isinstance(cur_value, str) else cur_value
             else:
-                target.Extensions[extension] = cur_value
+                target.Extensions[extension] =  cur_value
     return target
 
 def create_py(des_file_name,proto_file_name,class_name,json_file):
