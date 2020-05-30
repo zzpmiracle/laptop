@@ -4,7 +4,7 @@ from google.protobuf.descriptor import FieldDescriptor as FD
 class ConvertException(Exception):
     pass
 
-def dict2pb(cls, json_dic, strict=False):
+def dict2pb(cls, json_dic):
     """
     Takes a class representing the ProtoBuf Message and fills it with data from
     the dict.
@@ -25,12 +25,6 @@ def dict2pb(cls, json_dic, strict=False):
     field_names = set([field.name for field in target.DESCRIPTOR.fields])
     # fields = set([field.label for field in target.DESCRIPTOR.fields])
     # print(fields)
-    if strict:
-        for key in json_dic.keys():
-            if key not in field_names:
-                raise ConvertException(
-                    'Key "%s" can not be mapped to field in %s class.'
-                    % (key, type(target)))
 
     for field in target.DESCRIPTOR.fields:
         if field.name not in json_dic:
@@ -83,13 +77,72 @@ def dict2pb(cls, json_dic, strict=False):
                 target.Extensions[extension] =  cur_value
     return target
 
+from google.protobuf.any_pb2 import Any,_ANY
+
+
+def dict2pb3(cls,json_dic):
+    """
+    Takes a class representing the ProtoBuf Message and fills it with data from
+    the dict.
+    """
+    target = cls()
+    field_names = set([field.name for field in target.DESCRIPTOR.fields])
+    fields = set([(field.type,field.name) for field in target.DESCRIPTOR.fields])
+
+    for field in target.DESCRIPTOR.fields:
+        if field.name not in json_dic:
+            continue
+        cur_value = json_dic[field.name]
+        msg_type = field.message_type
+        if field.label == FD.LABEL_REPEATED:
+            if field.type == FD.TYPE_MESSAGE:
+                if msg_type == _ANY:
+                    for i,sub_val in enumerate(cur_value):
+                        any = Any()
+                        any.type_url = 'json2pb/'+'_'.join([any.type_url,field.name,str(i)])
+                        any.value = str.encode(str(sub_val))
+                        getattr(target, field.name).extend([any])
+                    continue
+                getattr(target, field.name).extend(
+                    [dict2pb3(msg_type._concrete_class, sub_dict) for sub_dict in cur_value])
+            elif field.type == FD.TYPE_ENUM:
+                getattr(target, field.name).extend(
+                    [field.enum_type.values_by_name[sub_val].number if isinstance(sub_val, str) else sub_val for sub_val
+                     in cur_value])
+
+            else:
+                getattr(target, field.name).extend(
+                    [str.encode(sub_val) if field.type == FD.TYPE_BYTES else sub_val for sub_val in cur_value])
+
+        else:
+            if field.type == FD.TYPE_MESSAGE:
+                value = dict2pb3(msg_type._concrete_class, cur_value)
+                getattr(target, field.name).CopyFrom(value)
+            elif field.type == FD.TYPE_BYTES:
+                setattr(target, field.name, str.encode(cur_value))
+            elif field.type == FD.TYPE_ENUM:
+                setattr(target, field.name,
+                        field.enum_type.values_by_name[cur_value].number if isinstance(cur_value, str) else cur_value)
+            else:
+                setattr(target, field.name, cur_value)
+
+    return target
+
+def json2pb(cls,json_dic):
+    if cls.DESCRIPTOR.syntax == 'proto3':
+        return dict2pb3(cls,json_dic)
+    elif cls.DESCRIPTOR.syntax == 'proto2':
+        return dict2pb(cls, json_dic)
+    else:
+        raise Exception('cannot find class syntax')
+
 def create_py(des_file_name,proto_file_name,class_name,json_file):
     with open(des_file_name,'w') as f:
         f.write('from {}_pb2 import {}\n'.format(proto_file_name.replace('.proto',''),class_name))
-        f.write('from json2pb import dict2pb\n')
+        f.write('from json2pb import json2pb\n')
         f.write('import json\n')
         f.write('with open(\''+json_file+'\',\'r\') as f:\n\tdes_dic = json.load(f)\n')
-        f.write('target = dict2pb({},des_dic)\n'.format(class_name))
+        f.write('target = json2pb({},des_dic)\n'.format(class_name))
         f.write('print(target)\n')
         f.write('Serialized_data = target.SerializeToString()\n')
         f.write('print(Serialized_data)\n')

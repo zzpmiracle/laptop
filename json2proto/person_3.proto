@@ -1,0 +1,31 @@
+syntax = "proto3";
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+message EchoRequest {
+  string text = 1;
+ }
+   message ComplexMessage {
+  string _str = 1;
+  float _float = 2;
+  sint64 _int_default = 13;
+  repeated sint64 _int = 3;
+  bytes _bin = 4;
+  bool _bool = 5;
+ message SubMessage {
+  string field = 1;
+ repeated EchoRequest echo = 2;
+ }
+ repeated SubMessage sub = 10;
+ enum SubEnum {
+   VALUE_defult=0;
+ VALUE1 = 10;
+ VALUE2 = 20;
+ };
+ repeated SubEnum _enum = 11;
+ repeated string str_list = 12;
+ repeated google.protobuf.Any any_type = 14;
+ map<string, string> maps = 15;
+google.protobuf.Timestamp time = 16;
+google.protobuf.Duration duration = 17;
+}
