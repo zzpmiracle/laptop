@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto2',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x0cperson.proto\"\x1b\n\x0b\x45\x63hoRequest\x12\x0c\n\x04text\x18\x01 \x02(\t\"\x85\x03\n\x0e\x43omplexMessage\x12\x0c\n\x04_str\x18\x01 \x02(\t\x12\x0e\n\x06_float\x18\x02 \x01(\x02\x12\x18\n\x0c_int_default\x18\r \x02(\x12:\x02\x39\x39\x12\x0c\n\x04_int\x18\x03 \x03(\x12\x12\x0c\n\x04_bin\x18\x04 \x02(\x0c\x12\r\n\x05_bool\x18\x05 \x02(\x08\x12\'\n\x03sub\x18\n \x03(\x0b\x32\x1a.ComplexMessage.SubMessage\x12&\n\x05_enum\x18\x0b \x03(\x0e\x32\x17.ComplexMessage.SubEnum\x12\x10\n\x08str_list\x18\x0c \x03(\t\x1a>\n\nSubMessage\x12\r\n\x05\x66ield\x18\x01 \x02(\t\x12\x1a\n\x04\x65\x63ho\x18\x02 \x03(\x0b\x32\x0c.EchoRequest*\x05\x08\x64\x10\xc8\x01\"!\n\x07SubEnum\x12\n\n\x06VALUE1\x10\n\x12\n\n\x06VALUE2\x10\x14*\x05\x08\x64\x10\xc8\x01\x32\x1e\n\x05\x65_int\x12\x0f.ComplexMessage\x18g \x01(\x11\x32#\n\ne_int_list\x12\x0f.ComplexMessage\x18h \x03(\x11:\x1f\n\x06\x65_bool\x12\x0f.ComplexMessage\x18\x65 \x01(\x08:$\n\x0b\x65_bool_list\x12\x0f.ComplexMessage\x18\x66 \x03(\x08'
+  serialized_pb=b'\n\x0cperson.proto\"\x1b\n\x0b\x45\x63hoRequest\x12\x0c\n\x04text\x18\x01 \x02(\t\"\x98\x03\n\x0e\x43omplexMessage\x12\x0e\n\x06_float\x18\x02 \x01(\x02\x12\x18\n\x0c_int_default\x18\r \x02(\x12:\x02\x39\x39\x12\x0c\n\x04_int\x18\x03 \x03(\x12\x12\x0c\n\x04_bin\x18\x04 \x02(\x0c\x12\x0e\n\x04_str\x18\x01 \x01(\tH\x00\x12\x0f\n\x05_bool\x18\x05 \x01(\x08H\x00\x12\'\n\x03sub\x18\n \x03(\x0b\x32\x1a.ComplexMessage.SubMessage\x12&\n\x05_enum\x18\x0b \x03(\x0e\x32\x17.ComplexMessage.SubEnum\x12\x10\n\x08str_list\x18\x0c \x03(\t\x1a>\n\nSubMessage\x12\r\n\x05\x66ield\x18\x01 \x02(\t\x12\x1a\n\x04\x65\x63ho\x18\x02 \x03(\x0b\x32\x0c.EchoRequest*\x05\x08\x64\x10\xc8\x01\"!\n\x07SubEnum\x12\n\n\x06VALUE1\x10\n\x12\n\n\x06VALUE2\x10\x14*\x05\x08\x64\x10\xc8\x01\x32\x1e\n\x05\x65_int\x12\x0f.ComplexMessage\x18g \x01(\x11\x32#\n\ne_int_list\x12\x0f.ComplexMessage\x18h \x03(\x11\x42\r\n\x0btest_one_of:\x1f\n\x06\x65_bool\x12\x0f.ComplexMessage\x18\x65 \x01(\x08:$\n\x0b\x65_bool_list\x12\x0f.ComplexMessage\x18\x66 \x03(\x05'
 )
 
 
@@ -34,7 +34,7 @@ e_bool = _descriptor.FieldDescriptor(
 E_BOOL_LIST_FIELD_NUMBER = 102
 e_bool_list = _descriptor.FieldDescriptor(
   name='e_bool_list', full_name='e_bool_list', index=1,
-  number=102, type=8, cpp_type=7, label=3,
+  number=102, type=5, cpp_type=1, label=3,
   has_default_value=False, default_value=[],
   message_type=None, enum_type=None, containing_type=None,
   is_extension=True, extension_scope=None,
@@ -60,8 +60,8 @@ _COMPLEXMESSAGE_SUBENUM = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=326,
-  serialized_end=359,
+  serialized_start=330,
+  serialized_end=363,
 )
 _sym_db.RegisterEnumDescriptor(_COMPLEXMESSAGE_SUBENUM)
 
@@ -132,8 +132,8 @@ _COMPLEXMESSAGE_SUBMESSAGE = _descriptor.Descriptor(
   extension_ranges=[(100, 200), ],
   oneofs=[
   ],
-  serialized_start=262,
-  serialized_end=324,
+  serialized_start=266,
+  serialized_end=328,
 )
 
 _COMPLEXMESSAGE = _descriptor.Descriptor(
@@ -145,43 +145,43 @@ _COMPLEXMESSAGE = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='_str', full_name='ComplexMessage._str', index=0,
-      number=1, type=9, cpp_type=9, label=2,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='_float', full_name='ComplexMessage._float', index=1,
+      name='_float', full_name='ComplexMessage._float', index=0,
       number=2, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='_int_default', full_name='ComplexMessage._int_default', index=2,
+      name='_int_default', full_name='ComplexMessage._int_default', index=1,
       number=13, type=18, cpp_type=2, label=2,
       has_default_value=True, default_value=99,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='_int', full_name='ComplexMessage._int', index=3,
+      name='_int', full_name='ComplexMessage._int', index=2,
       number=3, type=18, cpp_type=2, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='_bin', full_name='ComplexMessage._bin', index=4,
+      name='_bin', full_name='ComplexMessage._bin', index=3,
       number=4, type=12, cpp_type=9, label=2,
       has_default_value=False, default_value=b"",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
+      name='_str', full_name='ComplexMessage._str', index=4,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
       name='_bool', full_name='ComplexMessage._bool', index=5,
-      number=5, type=8, cpp_type=7, label=2,
+      number=5, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -233,9 +233,14 @@ _COMPLEXMESSAGE = _descriptor.Descriptor(
   syntax='proto2',
   extension_ranges=[(100, 200), ],
   oneofs=[
+    _descriptor.OneofDescriptor(
+      name='test_one_of', full_name='ComplexMessage.test_one_of',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
   ],
   serialized_start=46,
-  serialized_end=435,
+  serialized_end=454,
 )
 
 _COMPLEXMESSAGE_SUBMESSAGE.fields_by_name['echo'].message_type = _ECHOREQUEST
@@ -243,6 +248,12 @@ _COMPLEXMESSAGE_SUBMESSAGE.containing_type = _COMPLEXMESSAGE
 _COMPLEXMESSAGE.fields_by_name['sub'].message_type = _COMPLEXMESSAGE_SUBMESSAGE
 _COMPLEXMESSAGE.fields_by_name['_enum'].enum_type = _COMPLEXMESSAGE_SUBENUM
 _COMPLEXMESSAGE_SUBENUM.containing_type = _COMPLEXMESSAGE
+_COMPLEXMESSAGE.oneofs_by_name['test_one_of'].fields.append(
+  _COMPLEXMESSAGE.fields_by_name['_str'])
+_COMPLEXMESSAGE.fields_by_name['_str'].containing_oneof = _COMPLEXMESSAGE.oneofs_by_name['test_one_of']
+_COMPLEXMESSAGE.oneofs_by_name['test_one_of'].fields.append(
+  _COMPLEXMESSAGE.fields_by_name['_bool'])
+_COMPLEXMESSAGE.fields_by_name['_bool'].containing_oneof = _COMPLEXMESSAGE.oneofs_by_name['test_one_of']
 DESCRIPTOR.message_types_by_name['EchoRequest'] = _ECHOREQUEST
 DESCRIPTOR.message_types_by_name['ComplexMessage'] = _COMPLEXMESSAGE
 DESCRIPTOR.extensions_by_name['e_bool'] = e_bool

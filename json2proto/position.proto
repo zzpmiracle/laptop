@@ -1,0 +1,20 @@
+syntax = "proto2";
+message position { 
+required  bool min_position = 1;
+required  string items_html = 2;
+required  double new_latent_count = 3;
+message DATA {
+required  int32 length = 1;
+required  string text = 2;
+}
+required DATA data = 4;
+required  string time = 5;
+required  string time2 = 6;
+repeated int32 numericalArray = 7 [packed=true];
+repeated string StringArray = 8;
+message OBJARRAY {
+required  string name = 1;
+required  int32 age = 2;
+}
+repeated OBJARRAY objArray = 9;
+}

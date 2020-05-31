@@ -1,0 +1,16 @@
+{
+    "min_position": true,
+    "items_html": null,
+    "new_latent_count":0.2,
+    "data": {
+	"length":200,
+	"text":"Please Collect Cash"
+    },
+    "time":"2017-01-15T01:30:15.01Z",
+    "time2":"1.000000000000002s",
+    "numericalArray" : [4,5,6,7],
+    "StringArray" : ["Hello","How","are","you?"],
+    "objArray" : [{"name":"Jimmy","age":9},
+    {"name":"Ian","age":3}]
+   }
+ 

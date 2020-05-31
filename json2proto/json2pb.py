@@ -1,148 +1,105 @@
-import json
 from google.protobuf.descriptor import FieldDescriptor as FD
+import warnings
 
 class ConvertException(Exception):
     pass
 
-def dict2pb(cls, json_dic):
+from google.protobuf.any_pb2 import Any,_ANY
+from google.protobuf.timestamp_pb2 import Timestamp,_TIMESTAMP
+from google.protobuf.duration_pb2 import Duration,_DURATION
+
+def get_json_attr(field,attr):
+    msg_type = field.message_type
+    if field.type == FD.TYPE_MESSAGE:
+        if field.message_type == _TIMESTAMP:
+            time = Timestamp()
+            time.FromJsonString(attr)
+            return time
+        if field.message_type == _DURATION:
+            duration = Duration()
+            duration.FromJsonString(attr)
+            return duration
+        if msg_type == _ANY:
+            any = Any()
+            any.type_url = 'json2pb/' + '_'.join([any.type_url, field.name])
+            any.value = str.encode(str(attr))
+            return any
+        return dict2pb(msg_type._concrete_class, attr)
+    elif field.type == FD.TYPE_ENUM:
+        return field.enum_type.values_by_name[attr].number if isinstance(attr, str) else attr
+    elif field.type == FD.TYPE_BYTES:
+        return str.encode(attr)
+    else:
+        return attr
+
+def dict2pb(cls,json_dic):
     """
     Takes a class representing the ProtoBuf Message and fills it with data from
     the dict.
     """
     target = cls()
-    for field in target.DESCRIPTOR.fields:
-        # not required
-        if not field.label == field.LABEL_REQUIRED:
-            continue
-        # has default value
-        if field.has_default_value:
-            continue
-        # required but missing,raise except
-        if not field.name in json_dic:
-            raise ConvertException('Field "%s" missing from descriptor dictionary.'
-                                   % field.name)
+    if target.DESCRIPTOR.syntax == 'proto2':
+        for field in target.DESCRIPTOR.fields:
+            # not required
+            if not field.label == field.LABEL_REQUIRED:
+                continue
+            # has default value
+            if field.has_default_value:
+                continue
+            # required but missing,raise except
+            if field.name not in json_dic or not json_dic[field.name]:
+                raise ConvertException('Field "%s" missing from descriptor dictionary.'
+                                       % field.name)
+            # for extension in target.Extensions:
+        for extension_name in target._extensions_by_name:
+            extension = target._extensions_by_name[extension_name]
+            if extension.name not in json_dic:
+                if not extension.has_default_value:
+                    continue
+            cur_value = json_dic[extension.name] if extension.name in json_dic else extension.default_value
+            if extension.label == FD.LABEL_REPEATED:
+                x = [get_json_attr(extension,sub_val) for sub_val in cur_value]
+                target.Extensions[extension].extend(x)
+            else:
+                target.Extensions[extension] = get_json_attr(extension,cur_value)
 
-    field_names = set([field.name for field in target.DESCRIPTOR.fields])
-    # fields = set([field.label for field in target.DESCRIPTOR.fields])
-    # print(fields)
 
     for field in target.DESCRIPTOR.fields:
         if field.name not in json_dic:
             if not field.has_default_value:
                 continue
         cur_value = json_dic[field.name] if field.name in json_dic else field.default_value
-        msg_type = field.message_type
-        if field.label == FD.LABEL_REPEATED:
-            if field.type == FD.TYPE_MESSAGE:
-                getattr(target, field.name).extend([dict2pb(msg_type._concrete_class,sub_dict) for sub_dict in cur_value])
-            elif field.type == FD.TYPE_ENUM:
-                getattr(target, field.name).extend([field.enum_type.values_by_name[sub_val].number if isinstance(sub_val,str) else sub_val for sub_val in cur_value])
-            else:
-                getattr(target,field.name).extend([str.encode(sub_val) if field.type == FD.TYPE_BYTES else sub_val for sub_val in cur_value])
-
-        else:
-            if field.type == FD.TYPE_MESSAGE:
-                value = dict2pb(msg_type._concrete_class, cur_value)
-                getattr(target, field.name).CopyFrom(value)
-            elif field.type == FD.TYPE_BYTES:
-                setattr(target, field.name, str.encode(cur_value))
-            elif field.type == FD.TYPE_ENUM:
-                setattr(target, field.name, field.enum_type.values_by_name[cur_value].number if isinstance(cur_value, str) else cur_value)
-            else:
-                setattr(target, field.name, cur_value)
-    for extension_name in target._extensions_by_name:
-        extension = target._extensions_by_name[extension_name]
-        if extension.name not in json_dic:
-            if not extension.has_default_value:
-                continue
-        cur_value = json_dic[extension.name] if extension.name in json_dic else extension.default_value
-        msg_type = extension.message_type
-        if extension.label == FD.LABEL_REPEATED:
-            if extension.type == FD.TYPE_MESSAGE:
-                target.Extensions[extension].extend([dict2pb(msg_type._concrete_class, sub_dict) for sub_dict in cur_value])
-            elif extension.type == FD.TYPE_ENUM:
-                target.Extensions[extension].extend([extension.enum_type.values_by_name[sub_val].number
-                                                    if isinstance(sub_val, str) else sub_val for sub_val in cur_value])
-            else:
-                target.Extensions[extension].extend([str.encode(sub_val) if extension.type == FD.TYPE_BYTES else sub_val for sub_val in cur_value])
-        else:
-            if extension.type == FD.TYPE_MESSAGE:
-                value = dict2pb(msg_type._concrete_class, cur_value)
-                target.Extensions[extension].CopyFrom(value)
-            elif extension.type == FD.TYPE_BYTES:
-                target.Extensions[extension] =  str.encode(cur_value)
-            elif extension.type == FD.TYPE_ENUM:
-                target.Extensions[extension]= extension.enum_type.values_by_name[cur_value].number if isinstance(cur_value, str) else cur_value
-            else:
-                target.Extensions[extension] =  cur_value
-    return target
-
-from google.protobuf.any_pb2 import Any,_ANY
-
-
-def dict2pb3(cls,json_dic):
-    """
-    Takes a class representing the ProtoBuf Message and fills it with data from
-    the dict.
-    """
-    target = cls()
-    field_names = set([field.name for field in target.DESCRIPTOR.fields])
-    fields = set([(field.type,field.name) for field in target.DESCRIPTOR.fields])
-
-    for field in target.DESCRIPTOR.fields:
-        if field.name not in json_dic:
+        if cur_value is None:
             continue
-        cur_value = json_dic[field.name]
-        msg_type = field.message_type
-        if field.label == FD.LABEL_REPEATED:
-            if field.type == FD.TYPE_MESSAGE:
-                if msg_type == _ANY:
-                    for i,sub_val in enumerate(cur_value):
-                        any = Any()
-                        any.type_url = 'json2pb/'+'_'.join([any.type_url,field.name,str(i)])
-                        any.value = str.encode(str(sub_val))
-                        getattr(target, field.name).extend([any])
-                    continue
-                getattr(target, field.name).extend(
-                    [dict2pb3(msg_type._concrete_class, sub_dict) for sub_dict in cur_value])
-            elif field.type == FD.TYPE_ENUM:
-                getattr(target, field.name).extend(
-                    [field.enum_type.values_by_name[sub_val].number if isinstance(sub_val, str) else sub_val for sub_val
-                     in cur_value])
-
+        for oneof in target.DESCRIPTOR.oneofs:
+            if target.WhichOneof(oneof.name) is None:
+                pass
             else:
-                getattr(target, field.name).extend(
-                    [str.encode(sub_val) if field.type == FD.TYPE_BYTES else sub_val for sub_val in cur_value])
+                if field in oneof.fields:
+                    warn_msg = 'Oneof field {} alrady has value in {} field,now replaced by {} field!'.format(oneof.name,target.WhichOneof(oneof.name),field.name)
+                    warnings.warn(warn_msg,SyntaxWarning)
 
+        if field.label == FD.LABEL_REPEATED:
+            if field.message_type:
+                if field.message_type.name == field.name.capitalize()+'Entry':
+                    for k, v in cur_value.items():
+                        getattr(target, field.name)[k] = v
+                continue
+            getattr(target, field.name).extend([get_json_attr(field,sub_val) for sub_val in cur_value])
         else:
             if field.type == FD.TYPE_MESSAGE:
-                value = dict2pb3(msg_type._concrete_class, cur_value)
-                getattr(target, field.name).CopyFrom(value)
-            elif field.type == FD.TYPE_BYTES:
-                setattr(target, field.name, str.encode(cur_value))
-            elif field.type == FD.TYPE_ENUM:
-                setattr(target, field.name,
-                        field.enum_type.values_by_name[cur_value].number if isinstance(cur_value, str) else cur_value)
+                getattr(target,field.name).CopyFrom(get_json_attr(field,cur_value))
             else:
-                setattr(target, field.name, cur_value)
-
+                setattr(target, field.name, get_json_attr(field,cur_value))
     return target
-
-def json2pb(cls,json_dic):
-    if cls.DESCRIPTOR.syntax == 'proto3':
-        return dict2pb3(cls,json_dic)
-    elif cls.DESCRIPTOR.syntax == 'proto2':
-        return dict2pb(cls, json_dic)
-    else:
-        raise Exception('cannot find class syntax')
 
 def create_py(des_file_name,proto_file_name,class_name,json_file):
     with open(des_file_name,'w') as f:
         f.write('from {}_pb2 import {}\n'.format(proto_file_name.replace('.proto',''),class_name))
-        f.write('from json2pb import json2pb\n')
+        f.write('from json2pb import dict2pb\n')
         f.write('import json\n')
         f.write('with open(\''+json_file+'\',\'r\') as f:\n\tdes_dic = json.load(f)\n')
-        f.write('target = json2pb({},des_dic)\n'.format(class_name))
+        f.write('target = dict2pb({},des_dic)\n'.format(class_name))
         f.write('print(target)\n')
         f.write('Serialized_data = target.SerializeToString()\n')
         f.write('print(Serialized_data)\n')
