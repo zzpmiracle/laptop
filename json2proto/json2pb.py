@@ -19,7 +19,8 @@ def get_json_attr(field,attr):
             duration = Duration()
             duration.FromJsonString(attr)
             return duration
-        if msg_type == _ANY:
+
+        if msg_type.name == 'Any':
             any = Any()
             any.type_url = 'json2pb/' + '_'.join([any.type_url, field.name])
             any.value = str.encode(str(attr))
@@ -71,6 +72,8 @@ def dict2pb(cls,json_dic):
         cur_value = json_dic[field.name] if field.name in json_dic else field.default_value
         if cur_value is None:
             continue
+        if field.name == 'any_type':
+            print(1)
         for oneof in target.DESCRIPTOR.oneofs:
             if target.WhichOneof(oneof.name) is None:
                 pass
@@ -84,8 +87,8 @@ def dict2pb(cls,json_dic):
                 if field.message_type.name == field.name.capitalize()+'Entry':
                     for k, v in cur_value.items():
                         getattr(target, field.name)[k] = v
-                continue
-            getattr(target, field.name).extend([get_json_attr(field,sub_val) for sub_val in cur_value])
+                else:
+                    getattr(target, field.name).extend([get_json_attr(field,sub_val) for sub_val in cur_value])
         else:
             if field.type == FD.TYPE_MESSAGE:
                 getattr(target,field.name).CopyFrom(get_json_attr(field,cur_value))

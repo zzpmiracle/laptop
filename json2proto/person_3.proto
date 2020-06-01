@@ -23,12 +23,10 @@ message EchoRequest {
  VALUE1 = 10;
  VALUE2 = 20;
  };
-
  repeated SubEnum _enum = 11;
  repeated string str_list = 12;
  repeated google.protobuf.Any any_type = 14;
  map<string, string> maps = 15;
 google.protobuf.Timestamp time = 16;
 google.protobuf.Duration duration = 17;
-
 }
