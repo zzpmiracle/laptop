@@ -441,8 +441,279 @@ class Solution:
             if left<right:
                 nums[left], nums[right] = nums[right], nums[left]
         return nums
+
+    def isSubStructure(self, A, B):
+        """
+        剑指 Offer 26. 树的子结构
+        :type A: TreeNode
+        :type B: TreeNode
+        :rtype: bool
+        """
+        def isSub(A,B):
+            if not B:
+                return True
+            if not A:
+                return False
+            if A.val is not B.val:
+                return False
+            return isSub(A.left,B.left) and isSub(A.right,B.right)
+
+        if not B or not A:
+            return False
+
+        return isSub(A,B) or self.isSubStructure(A.left,B) or self.isSubStructure(A.right,B)
+
+    def mirrorTree(self, root):
+        """
+        剑指 Offer 27. 二叉树的镜像
+        :type root: TreeNode
+        :rtype: TreeNode
+        """
+        if not root:
+            return None
+        root.left, root.right = self.mirrorTree(root.right), self.mirrorTree(root.left)
+        return root
+
+    def isSymmetric(self, root):
+        """
+        剑指 Offer 28. 对称的二叉树
+        :type root: TreeNode
+        :rtype: bool
+        """
+        def Symmertric(A,B):
+            if not A and not B:
+                return True
+            if not A or not B or A.val != B.val:
+                return False
+            return Symmertric(A.left,B.right) and Symmertric(A.right,B.left)
+        if not root:
+            return True
+        return Symmertric(root.left,root.right)
+
+    def spiralOrder(self, matrix):
+        """
+        剑指 Offer 29. 顺时针打印矩阵
+        :type matrix: List[List[int]]
+        :rtype: List[int]
+        """
+        res = []
+        def printCircle(start):
+            end_row = len(matrix)-1-start
+            end_col = len(matrix[0])-1-start
+            for col in range(start,end_col+1):
+                res.append(matrix[start][col])
+            if end_row>start:
+                for row in range(start+1,end_row+1):
+                    res.append(matrix[row][end_col])
+                if end_col>start:
+                    for col in range(end_col-1,start-1,-1):
+                        res.append(matrix[end_row][col])
+                    if end_row-1>start:
+                        for row in range(end_row-1,start,-1):
+                            res.append(matrix[row][start])
+            return
+        if not matrix:return 0
+        start = 0
+        while start*2<len(matrix) and start*2<len(matrix[0]):
+            printCircle(start)
+            start+=1
+        return res
+
+    class MinStack(object):
+        '''
+        剑指 Offer 30. 包含min函数的栈
+        '''
+
+        def __init__(self):
+            """
+            initialize your data structure here.
+            """
+            self.stack, self.min_stack = [], []
+
+        def push(self, x):
+            """
+            :type x: int
+            :rtype: None
+            """
+            self.stack.append(x)
+            if len(self.min_stack)==0:
+                self.min_stack.append(x)
+            else:
+                self.min_stack.append(min(x,self.min_stack[-1]))
+
+        def pop(self):
+            """
+            :rtype: None
+            """
+            self.min_stack.pop()
+            return self.stack.pop()
+
+        def top(self):
+            """
+            :rtype: int
+            """
+            return self.stack[-1]
+
+        def min(self):
+            """
+            :rtype: int
+            """
+            return self.min_stack[-1]
+
+    def validateStackSequences(self, pushed, popped):
+        """
+        剑指 Offer 31. 栈的压入、弹出序列
+        :type pushed: List[int]
+        :type popped: List[int]
+        :rtype: bool
+        """
+        if (not pushed and not popped)  or (len(pushed) == 1 and pushed[0] == popped[0]):
+            return True
+        if not pushed or not popped:
+            return False
+        stack = [pushed[0]]
+        push_index, pop_index = 1, 0
+        while push_index<len(pushed) and pop_index < len(popped):
+            while push_index<len(pushed) and (not stack or stack[-1]!=popped[pop_index] ):
+                stack.append(pushed[push_index])
+                push_index+=1
+            while len(stack)>0 and stack[-1] == popped[pop_index] :
+                stack.pop()
+                pop_index+=1
+        if pop_index == len(popped):
+            return True
+        return False
+
+    def levelOrder(self, root):
+        """
+        剑指 Offer 32 - I. 从上到下打印二叉树
+        :type root: TreeNode
+        :rtype: List[int]
+        """
+        if not root:
+            return []
+        res, queue = [], [root]
+        while queue:
+            node = queue.pop(0)
+            res.append(node.val)
+            if node.left:
+                queue.append(node.left)
+            if node.right:
+                queue.append(node.right)
+        return res
+
+    def levelOrder(self, root):
+        """
+        剑指 Offer 32 - I. 从上到下打印二叉树2
+        :type root: TreeNode
+        :rtype: List[int]
+        """
+        if not root:
+            return []
+        res, res_level, queue = [], [], [root]
+        toPrint, next_leval = 1, 0
+        while queue:
+            node = queue.pop(0)
+            toPrint -=1
+            res_level.append(node.val)
+            if node.left:
+                queue.append(node.left)
+                next_leval +=1
+            if node.right:
+                queue.append(node.right)
+                next_leval+=1
+            if not toPrint:
+                res.append(res_level)
+                res_level = []
+                toPrint = next_leval
+                next_leval = 0
+        return res
+
+    def levelOrder(self, root):
+        """
+        剑指 Offer 32 - III. 从上到下打印二叉树 III
+        :type root: TreeNode
+        :rtype: List[List[int]]
+        """
+        if not root:
+            return []
+        res, res_level, queue = [], [], [root]
+        toPrint, next_leval = 1, 0
+        need_reverse = False
+        while queue:
+            node = queue.pop(0)
+            toPrint -=1
+            res_level.append(node.val)
+            if node.left:
+                queue.append(node.left)
+                next_leval +=1
+            if node.right:
+                queue.append(node.right)
+                next_leval+=1
+            if not toPrint:
+                if need_reverse:
+                    res_level = res_level[::-1]
+                need_reverse = not need_reverse
+                res.append(res_level)
+                res_level = []
+                toPrint = next_leval
+                next_leval = 0
+        return res
+
+    def verifyPostorder(self, postorder):
+        """
+        剑指 Offer 33. 二叉搜索树的后序遍历序列
+        :type postorder: List[int]
+        :rtype: bool
+        """
+        if not postorder or len(postorder)==1:
+            return True
+        root = postorder[-1]
+        is_left = True
+        left_end = 0
+        for index, num in enumerate(postorder[:-1]):
+            if is_left:
+                if num<root:
+                    pass
+                else:
+                    left_end = index
+                    is_left=False
+            else:
+                if num<root:
+                    return False
+        return self.verifyPostorder(postorder[:left_end]) and self.verifyPostorder(postorder[left_end:-1])
+
+    def pathSum(self, root, sum):
+        """
+        剑指 Offer 34. 二叉树中和为某一值的路径
+        :type root: TreeNode
+        :type sum: int
+        :rtype: List[List[int]]
+        """
+        if not root:
+            return []
+        if root.val == sum and not root.left and not root.right:
+            return [[root.val]]
+        next_leavel = []
+        left_path, right_path = self.pathSum(root.left, sum - root.val), self.pathSum(root.right, sum - root.val)
+        if left_path:
+            next_leavel.extend(left_path)
+        if right_path:
+            next_leavel.extend(right_path)
+        if next_leavel:
+            res = []
+            for path in next_leavel:
+                tmp = [root.val]
+                tmp.extend(path)
+                res.append(tmp)
+            return res
+        return []
+
+
+
 solution = Solution()
-print(solution.movingCount(1,2,1))
+print(solution.validateStackSequences([1],[1]))
+test = []
 
 
 # import heapq
